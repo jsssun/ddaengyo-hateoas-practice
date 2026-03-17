@@ -30,15 +30,13 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/*.html", "/", "/index.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/*.html", "/", "/index.html").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/orders").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/menus/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/menus/**").hasRole("OWNER")
-                        .requestMatchers(HttpMethod.PUT, "/api/menus/**").hasRole("OWNER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/menus/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET,    "/api/store/*/menu/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,   "/api/store/*/menu/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.PUT,    "/api/store/*/menu/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/store/*/menu/**").hasRole("OWNER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
