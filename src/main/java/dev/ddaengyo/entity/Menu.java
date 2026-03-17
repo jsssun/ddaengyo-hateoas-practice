@@ -1,6 +1,9 @@
 package dev.ddaengyo.entity;
 
+import dev.ddaengyo.menu.dto.MenuRequest;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.*;
 
 @Entity
@@ -29,4 +32,12 @@ public class Menu extends BaseEntity{
 
     private Boolean popularity;
 
+    @Transactional
+    public Menu updateMenu(@Valid MenuRequest request) {
+        this.category = request.getCategory();
+        this.name = request.getName();
+        this.price = request.getPrice();
+        this.popularity = request.getPopularity();
+        return this;
+    }
 }
