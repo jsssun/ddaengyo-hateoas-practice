@@ -64,6 +64,9 @@ CREATE TABLE orders (
     CONSTRAINT fk_order_user  FOREIGN KEY (user_id)  REFERENCES user  (user_id)
 );
 
+ALTER TABLE orders
+    ADD COLUMN product_id BIGINT NOT NULL DEFAULT 0 AFTER user_id,
+    ADD COLUMN quantity   INT    NOT NULL DEFAULT 1 AFTER product_id;
 
 -- =============================================
 -- INSERT
