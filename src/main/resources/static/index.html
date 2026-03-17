@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>땡겨요</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f5f5f5;color:#222}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+input,textarea{font-family:inherit}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState} = React;
+
+const STORES = [
+  {id:1,name:"옛날통닭",category:"치킨",rating:4.8,reviews:1240,minOrder:15000,deliveryTip:2000,deliveryTime:"20-30",img:"🍗",tags:["인기","단골"],desc:"바삭한 국물치킨 전문점"},
+  {id:2,name:"홍콩반점0410",category:"중식",rating:4.6,reviews:890,minOrder:12000,deliveryTip:1000,deliveryTime:"25-40",img:"🍜",tags:["빠른배달"],desc:"정통 중화요리 전문점"},
+  {id:3,name:"맘스터치",category:"버거",rating:4.5,reviews:2100,minOrder:8000,deliveryTip:0,deliveryTime:"15-25",img:"🍔",tags:["무료배달","인기"],desc:"싸이버거 원조"},
+  {id:4,name:"본죽",category:"죽/한식",rating:4.7,reviews:560,minOrder:10000,deliveryTip:1500,deliveryTime:"30-45",img:"🥣",tags:["건강식"],desc:"든든한 한 끼 전통 죽"},
+  {id:5,name:"피자헛",category:"피자",rating:4.3,reviews:3200,minOrder:18000,deliveryTip:0,deliveryTime:"30-50",img:"🍕",tags:["무료배달"],desc:"언제나 맛있는 피자"},
+  {id:6,name:"초밥go",category:"일식",rating:4.9,reviews:430,minOrder:20000,deliveryTip:2000,deliveryTime:"20-35",img:"🍣",tags:["프리미엄","인기"],desc:"신선한 재료만 사용하는 초밥"},
+];
+
+const MENUS = {
+  1:[
+    {id:1,name:"후라이드 치킨",price:18000,category:"치킨",popular:true,desc:"바삭바삭한 클래식 후라이드"},
+    {id:2,name:"양념 치킨",price:19000,category:"치킨",popular:true,desc:"달콤매콤한 양념 치킨"},
+    {id:3,name:"반반 치킨",price:20000,category:"치킨",popular:false,desc:"후라이드+양념 반반"},
+    {id:4,name:"콜라 1.25L",price:3000,category:"음료",popular:false,desc:"시원한 콜라"},
+  ],
+  2:[
+    {id:1,name:"짜장면",price:7000,category:"면",popular:true,desc:"달콤한 춘장 짜장면"},
+    {id:2,name:"짬뽕",price:8000,category:"면",popular:true,desc:"얼큰한 해물 짬뽕"},
+    {id:3,name:"탕수육(소)",price:16000,category:"요리",popular:false,desc:"바삭한 탕수육"},
+  ],
+  3:[
+    {id:1,name:"싸이버거",price:5500,category:"버거",popular:true,desc:"맘스터치 대표 버거"},
+    {id:2,name:"불싸이버거",price:6000,category:"버거",popular:false,desc:"매운 불싸이버거"},
+    {id:3,name:"감자튀김(M)",price:2500,category:"사이드",popular:false,desc:"바삭한 감자튀김"},
+  ],
+  4:[
+    {id:1,name:"전복죽",price:12000,category:"죽",popular:true,desc:"신선한 전복 듬뿍"},
+    {id:2,name:"쇠고기죽",price:10000,category:"죽",popular:false,desc:"부드러운 쇠고기죽"},
+  ],
+  5:[
+    {id:1,name:"페퍼로니 피자(L)",price:22000,category:"피자",popular:true,desc:"클래식 페퍼로니"},
+    {id:2,name:"슈프림 피자(L)",price:25000,category:"피자",popular:false,desc:"풍성한 토핑"},
+  ],
+  6:[
+    {id:1,name:"연어 초밥 세트",price:22000,category:"초밥",popular:true,desc:"신선한 연어 8피스"},
+    {id:2,name:"모둠 초밥 세트",price:28000,category:"초밥",popular:true,desc:"다양한 재료 12피스"},
+  ],
+};
+
+const ORDERS_MOCK = [
+  {id:1001,store:"옛날통닭",items:"후라이드 치킨 1개",total:20000,status:"배달완료",date:"2025-03-15"},
+  {id:1002,store:"맘스터치",items:"싸이버거 2개, 감자튀김 1개",total:13500,status:"배달완료",date:"2025-03-14"},
+  {id:1003,store:"홍콩반점0410",items:"짜장면 1개, 짬뽕 1개",total:16000,status:"배달중",date:"2025-03-17"},
+];
+
+const CATEGORIES = ["전체","치킨","중식","버거","죽/한식","피자","일식"];
+
+function Header({setPage, user, setUser}) {
+  return (
+    <div style={{background:"#ff6b00",padding:"0 16px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}}>
+      <button onClick={()=>setPage("main")} style={{color:"#fff",fontSize:20,fontWeight:700,letterSpacing:-0.5}}>땡겨요</button>
+      <div style={{display:"flex",gap:8}}>
+        {user ? (
+          <>
+            <button onClick={()=>setPage("orders")} style={{color:"#fff",fontSize:13,padding:"6px 12px",borderRadius:20,background:"rgba(255,255,255,0.2)"}}>내 주문</button>
+            <button onClick={()=>setUser(null)} style={{color:"#fff",fontSize:13,padding:"6px 12px",borderRadius:20,background:"rgba(255,255,255,0.2)"}}>로그아웃</button>
+          </>
+        ) : (
+          <button onClick={()=>setPage("login")} style={{color:"#ff6b00",fontSize:13,fontWeight:700,padding:"6px 14px",borderRadius:20,background:"#fff"}}>로그인</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MainPage({setPage, setSelectedStore}) {
+  const [category, setCategory] = useState("전체");
+  const [search, setSearch] = useState("");
+  const filtered = STORES.filter(s =>
+    (category === "전체" || s.category === category) &&
+    (s.name.includes(search) || s.category.includes(search))
+  );
+  return (
+    <div>
+      <div style={{background:"#ff6b00",padding:"16px 16px 24px"}}>
+        <div style={{background:"#fff",borderRadius:24,display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
+          <span style={{fontSize:16}}>🔍</span>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder="음식점, 메뉴 검색"
+            style={{border:"none",outline:"none",flex:1,fontSize:14,color:"#222"}}/>
+        </div>
+      </div>
+      <div style={{background:"#fff",borderBottom:"1px solid #eee",padding:"12px 16px",overflowX:"auto",display:"flex",gap:8,whiteSpace:"nowrap"}}>
+        {CATEGORIES.map(c=>(
+          <button key={c} onClick={()=>setCategory(c)}
+            style={{padding:"7px 14px",borderRadius:20,fontSize:13,fontWeight:600,
+              background:category===c?"#ff6b00":"#f5f5f5",
+              color:category===c?"#fff":"#555",border:"none",flexShrink:0}}>
+            {c}
+          </button>
+        ))}
+      </div>
+      <div style={{padding:"16px"}}>
+        <p style={{fontSize:13,color:"#999",marginBottom:12}}>{filtered.length}개의 가게</p>
+        {filtered.map(store=>(
+          <div key={store.id} onClick={()=>{setSelectedStore(store);setPage("store");}}
+            style={{background:"#fff",borderRadius:12,marginBottom:12,overflow:"hidden",cursor:"pointer",border:"1px solid #f0f0f0"}}>
+            <div style={{background:"#fff8f0",height:120,display:"flex",alignItems:"center",justifyContent:"center",fontSize:64,borderBottom:"1px solid #f5f5f5"}}>
+              {store.img}
+            </div>
+            <div style={{padding:"12px 14px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                <p style={{fontWeight:700,fontSize:16}}>{store.name}</p>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                  {store.tags.map(t=>(
+                    <span key={t} style={{fontSize:11,padding:"2px 7px",borderRadius:10,
+                      background:t==="인기"?"#fff0e6":t==="무료배달"?"#e6f7ff":"#f5f5f5",
+                      color:t==="인기"?"#ff6b00":t==="무료배달"?"#0066cc":"#777",fontWeight:600}}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <p style={{fontSize:12,color:"#999",marginBottom:8}}>{store.desc}</p>
+              <div style={{display:"flex",gap:12,fontSize:12,color:"#555"}}>
+                <span>⭐ {store.rating} ({store.reviews.toLocaleString()})</span>
+                <span>⏱ {store.deliveryTime}분</span>
+                <span>🛵 {store.deliveryTip===0?"무료":store.deliveryTip.toLocaleString()+"원"}</span>
+              </div>
+              <p style={{fontSize:12,color:"#aaa",marginTop:4}}>최소주문 {store.minOrder.toLocaleString()}원</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StorePage({store, setPage, user, cart, setCart}) {
+  const menus = MENUS[store.id] || [];
+  const categories = [...new Set(menus.map(m=>m.category))];
+  const addToCart = (menu) => {
+    setCart(prev => {
+      const exist = prev.find(i=>i.id===menu.id&&i.storeId===store.id);
+      if(exist) return prev.map(i=>i.id===menu.id&&i.storeId===store.id?{...i,qty:i.qty+1}:i);
+      return [...prev, {...menu, qty:1, storeId:store.id, storeName:store.name}];
+    });
+  };
+  const storeCart = cart.filter(i=>i.storeId===store.id);
+  const cartTotal = storeCart.reduce((s,i)=>s+i.price*i.qty,0);
+  const cartCount = storeCart.reduce((s,i)=>s+i.qty,0);
+
+  return (
+    <div style={{paddingBottom:80}}>
+      <div style={{background:"#fff8f0",height:160,display:"flex",alignItems:"center",justifyContent:"center",fontSize:80,borderBottom:"1px solid #f0f0f0"}}>
+        {store.img}
+      </div>
+      <div style={{background:"#fff",padding:"16px",borderBottom:"1px solid #f0f0f0"}}>
+        <h2 style={{fontSize:20,fontWeight:700,marginBottom:4}}>{store.name}</h2>
+        <p style={{fontSize:13,color:"#999",marginBottom:8}}>{store.desc}</p>
+        <div style={{display:"flex",gap:12,fontSize:13,color:"#555"}}>
+          <span>⭐ {store.rating}</span>
+          <span>⏱ {store.deliveryTime}분</span>
+          <span>🛵 {store.deliveryTip===0?"무료배달":store.deliveryTip.toLocaleString()+"원"}</span>
+        </div>
+      </div>
+      <div style={{padding:"16px"}}>
+        {categories.map(cat=>(
+          <div key={cat} style={{marginBottom:20}}>
+            <p style={{fontSize:14,fontWeight:700,color:"#555",marginBottom:10,paddingBottom:6,borderBottom:"1px solid #f0f0f0"}}>{cat}</p>
+            {menus.filter(m=>m.category===cat).map(menu=>(
+              <div key={menu.id} style={{background:"#fff",borderRadius:10,padding:"14px",marginBottom:8,border:"1px solid #f0f0f0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                    <p style={{fontWeight:600,fontSize:15}}>{menu.name}</p>
+                    {menu.popular && <span style={{fontSize:10,padding:"1px 6px",borderRadius:8,background:"#fff0e6",color:"#ff6b00",fontWeight:700}}>인기</span>}
+                  </div>
+                  <p style={{fontSize:12,color:"#aaa",marginBottom:6}}>{menu.desc}</p>
+                  <p style={{fontSize:15,fontWeight:700,color:"#ff6b00"}}>{menu.price.toLocaleString()}원</p>
+                </div>
+                <button onClick={()=>{ if(!user){setPage("login");return;} addToCart(menu);}}
+                  style={{width:32,height:32,borderRadius:16,background:"#ff6b00",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginLeft:12}}>
+                  +
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <button onClick={()=>setPage("main")}
+        style={{position:"fixed",bottom:cartCount>0?80:16,left:"50%",transform:"translateX(-50%)",
+          background:"#fff",border:"1px solid #eee",borderRadius:24,padding:"8px 20px",
+          fontSize:13,color:"#555",fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)",whiteSpace:"nowrap"}}>
+        ← 홈으로
+      </button>
+      {cartCount > 0 && (
+        <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"12px 16px",background:"#ff6b00",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span style={{color:"#fff",fontWeight:700,fontSize:15}}>🛒 {cartCount}개</span>
+          <button onClick={()=>setPage("order")} style={{color:"#ff6b00",background:"#fff",padding:"8px 20px",borderRadius:20,fontWeight:700,fontSize:15}}>
+            주문하기 {cartTotal.toLocaleString()}원
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrderPage({store, cart, setCart, setPage, user}) {
+  const storeCart = cart.filter(i=>i.storeId===store.id);
+  const [requests, setRequests] = useState("");
+  const [payment, setPayment] = useState("카드");
+  const [ordered, setOrdered] = useState(false);
+  const total = storeCart.reduce((s,i)=>s+i.price*i.qty,0);
+
+  const handleOrder = () => {
+    if(!user){setPage("login");return;}
+    setOrdered(true);
+    setCart(prev=>prev.filter(i=>i.storeId!==store.id));
+    setTimeout(()=>setPage("orders"), 1500);
+  };
+
+  if(ordered) return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:400,gap:16}}>
+      <div style={{fontSize:64}}>✅</div>
+      <p style={{fontSize:18,fontWeight:700}}>주문이 완료되었습니다!</p>
+      <p style={{fontSize:14,color:"#999"}}>주문 내역으로 이동합니다...</p>
+    </div>
+  );
+
+  return (
+    <div style={{paddingBottom:120}}>
+      <div style={{background:"#fff",padding:"16px",borderBottom:"1px solid #f0f0f0"}}>
+        <p style={{fontWeight:700,fontSize:16,marginBottom:12}}>주문 내역</p>
+        {storeCart.map(item=>(
+          <div key={item.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #f9f9f9"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                <button onClick={()=>setCart(p=>p.map(i=>i.id===item.id&&i.storeId===store.id?{...i,qty:Math.max(0,i.qty-1)}:i).filter(i=>i.qty>0))}
+                  style={{width:26,height:26,borderRadius:13,border:"1px solid #ddd",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>-</button>
+                <span style={{fontSize:14,fontWeight:600,minWidth:24,textAlign:"center"}}>{item.qty}</span>
+                <button onClick={()=>setCart(p=>p.map(i=>i.id===item.id&&i.storeId===store.id?{...i,qty:i.qty+1}:i))}
+                  style={{width:26,height:26,borderRadius:13,border:"none",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",background:"#ff6b00",color:"#fff"}}>+</button>
+              </div>
+              <p style={{fontSize:14}}>{item.name}</p>
+            </div>
+            <p style={{fontSize:14,fontWeight:600}}>{(item.price*item.qty).toLocaleString()}원</p>
+          </div>
+        ))}
+      </div>
+      <div style={{background:"#fff",padding:"16px",borderBottom:"1px solid #f0f0f0",marginTop:8}}>
+        <p style={{fontWeight:700,marginBottom:10}}>결제 수단</p>
+        {["카드","현금","카카오페이","네이버페이"].map(p=>(
+          <button key={p} onClick={()=>setPayment(p)}
+            style={{padding:"7px 14px",borderRadius:20,fontSize:13,marginRight:6,marginBottom:6,
+              background:payment===p?"#ff6b00":"#f5f5f5",color:payment===p?"#fff":"#555",border:"none",fontWeight:600}}>
+            {p}
+          </button>
+        ))}
+      </div>
+      <div style={{background:"#fff",padding:"16px",marginTop:8}}>
+        <p style={{fontWeight:700,marginBottom:8}}>요청 사항</p>
+        <textarea value={requests} onChange={e=>setRequests(e.target.value)}
+          placeholder="가게 사장님께 전달할 메시지를 입력하세요"
+          style={{width:"100%",border:"1px solid #eee",borderRadius:8,padding:"10px",fontSize:13,height:80,resize:"none",outline:"none"}}/>
+      </div>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",padding:"12px 16px",borderTop:"1px solid #f0f0f0"}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <span style={{fontSize:14,color:"#555"}}>총 결제금액</span>
+          <span style={{fontSize:18,fontWeight:700,color:"#ff6b00"}}>{total.toLocaleString()}원</span>
+        </div>
+        <button onClick={handleOrder}
+          style={{width:"100%",background:"#ff6b00",color:"#fff",padding:"14px",borderRadius:12,fontSize:16,fontWeight:700}}>
+          {total.toLocaleString()}원 결제하기
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OrdersPage({setPage}) {
+  return (
+    <div style={{padding:"16px",paddingBottom:80}}>
+      <p style={{fontWeight:700,fontSize:17,marginBottom:16}}>주문 내역</p>
+      {ORDERS_MOCK.map(order=>(
+        <div key={order.id} style={{background:"#fff",borderRadius:12,padding:"14px",marginBottom:10,border:"1px solid #f0f0f0"}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <p style={{fontWeight:700,fontSize:15}}>{order.store}</p>
+            <span style={{fontSize:12,padding:"2px 8px",borderRadius:10,
+              background:order.status==="배달중"?"#fff0e6":"#f0f0f0",
+              color:order.status==="배달중"?"#ff6b00":"#777",fontWeight:600}}>
+              {order.status}
+            </span>
+          </div>
+          <p style={{fontSize:13,color:"#aaa",marginBottom:6}}>{order.items}</p>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <p style={{fontSize:12,color:"#ccc"}}>{order.date}</p>
+            <p style={{fontSize:15,fontWeight:700}}>{order.total.toLocaleString()}원</p>
+          </div>
+        </div>
+      ))}
+      <button onClick={()=>setPage("main")}
+        style={{position:"fixed",bottom:16,left:"50%",transform:"translateX(-50%)",
+          background:"#fff",border:"1px solid #eee",borderRadius:24,padding:"8px 20px",
+          fontSize:13,color:"#555",fontWeight:600,boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
+        ← 홈으로
+      </button>
+    </div>
+  );
+}
+
+function LoginPage({setPage, setUser}) {
+  const [isSignup, setIsSignup] = useState(false);
+  const [form, setForm] = useState({email:"",password:"",name:"",phone:"",role:"CUSTOMER"});
+
+  const handle = () => {
+    if(!form.email||!form.password){alert("이메일과 비밀번호를 입력하세요");return;}
+    setUser({email:form.email, name:form.name||"사용자", role:form.role});
+    setPage("main");
+  };
+
+  return (
+    <div style={{padding:"32px 20px"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <p style={{fontSize:48,marginBottom:8}}>🛵</p>
+        <p style={{fontSize:26,fontWeight:700,color:"#ff6b00"}}>땡겨요</p>
+        <p style={{fontSize:13,color:"#aaa",marginTop:6}}>맛있는 음식을 집에서 편하게</p>
+      </div>
+      <div style={{background:"#fff",borderRadius:16,padding:"24px",border:"1px solid #f0f0f0"}}>
+        <div style={{display:"flex",marginBottom:20,background:"#f5f5f5",borderRadius:10,padding:3}}>
+          {["로그인","회원가입"].map((t,i)=>(
+            <button key={t} onClick={()=>setIsSignup(i===1)}
+              style={{flex:1,padding:"8px",borderRadius:8,fontSize:14,fontWeight:600,
+                background:isSignup===(i===1)?"#fff":"transparent",
+                color:isSignup===(i===1)?"#ff6b00":"#999",
+                boxShadow:isSignup===(i===1)?"0 1px 4px rgba(0,0,0,0.1)":"none",border:"none"}}>
+              {t}
+            </button>
+          ))}
+        </div>
+        {isSignup && (
+          <>
+            <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})}
+              placeholder="이름"
+              style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #eee",fontSize:14,marginBottom:10,outline:"none"}}/>
+            <input value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}
+              placeholder="전화번호 (숫자만)"
+              style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #eee",fontSize:14,marginBottom:10,outline:"none"}}/>
+            <div style={{display:"flex",gap:8,marginBottom:10}}>
+              {["CUSTOMER","OWNER"].map(r=>(
+                <button key={r} onClick={()=>setForm({...form,role:r})}
+                  style={{flex:1,padding:"10px",borderRadius:10,fontSize:13,fontWeight:600,
+                    background:form.role===r?"#ff6b00":"#f5f5f5",
+                    color:form.role===r?"#fff":"#777",border:"none"}}>
+                  {r==="CUSTOMER"?"일반 회원":"사장님"}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        <input value={form.email} onChange={e=>setForm({...form,email:e.target.value})}
+          placeholder="이메일"
+          style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #eee",fontSize:14,marginBottom:10,outline:"none"}}/>
+        <input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}
+          placeholder="비밀번호"
+          style={{width:"100%",padding:"12px 14px",borderRadius:10,border:"1px solid #eee",fontSize:14,marginBottom:16,outline:"none"}}/>
+        <button onClick={handle}
+          style={{width:"100%",background:"#ff6b00",color:"#fff",padding:"13px",borderRadius:12,fontSize:15,fontWeight:700,border:"none"}}>
+          {isSignup?"회원가입":"로그인"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [page, setPage] = useState("main");
+  const [user, setUser] = useState(null);
+  const [selectedStore, setSelectedStore] = useState(null);
+  const [cart, setCart] = useState([]);
+
+  const renderPage = () => {
+    switch(page) {
+      case "main": return <MainPage setPage={setPage} setSelectedStore={setSelectedStore}/>;
+      case "store": return selectedStore ? <StorePage store={selectedStore} setPage={setPage} user={user} cart={cart} setCart={setCart}/> : null;
+      case "order": return selectedStore ? <OrderPage store={selectedStore} cart={cart} setCart={setCart} setPage={setPage} user={user}/> : null;
+      case "orders": return <OrdersPage setPage={setPage}/>;
+      case "login": return <LoginPage setPage={setPage} setUser={setUser}/>;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",background:"#f5f5f5"}}>
+      <Header setPage={setPage} user={user} setUser={setUser}/>
+      {renderPage()}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
