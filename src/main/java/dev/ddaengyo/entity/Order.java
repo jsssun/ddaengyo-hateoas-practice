@@ -1,19 +1,13 @@
 package dev.ddaengyo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import jakarta.persistence.*;
+import lombok.*;
 
-// 실제 주문 헤더 정보 -> Cart가 order_id로 연결
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
@@ -35,15 +29,4 @@ public class Order extends BaseEntity {
 
     @Column(length = 255)
     private String requests;
-
-    protected Order() {
-    }
-
-    private Order(Long storeId, Long userId, String paymentMethod, String requests) {
-        this.storeId = storeId;
-        this.userId = userId;
-        this.paymentMethod = paymentMethod;
-        this.requests = requests;
-        this.totalPrice = 0;
-    }
 }

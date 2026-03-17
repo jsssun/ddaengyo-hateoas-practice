@@ -1,16 +1,15 @@
 package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "menus")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Menu extends BaseEntity{
 
     @Id
@@ -23,44 +22,12 @@ public class Menu extends BaseEntity{
     @Column(nullable = false, length = 100)
     private String category;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private Integer price;
 
-
-
-    @Column(nullable = true)
     private Boolean popularity;
 
-
-
-
-
-    public Menu(Long storeId, String category, String name, Integer price) {
-        this.storeId = storeId;
-        this.category = category;
-        this.name = name;
-        this.price = price;
-        this.popularity = false;
-
-
-    }
-
-    public void update(String category, String name, Integer price, String menuPictureUrl) {
-        this.category = category;
-        this.name = name;
-        this.price = price;
-
-
-    }
-
-    public void changePopularity(Boolean popularity) {
-        this.popularity = popularity;
-
-    }
-
-//    public void delete() {
-//    }
 }
