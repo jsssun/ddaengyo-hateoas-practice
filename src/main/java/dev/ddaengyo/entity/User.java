@@ -1,4 +1,4 @@
-package dev.jpa.entity;
+package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,17 +34,4 @@ public class User extends BaseEntity{
 
     @Column(name = "current_address")
     private String currentAddress;
-
-    // 연관관계
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Address> addresses = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Review> reviews = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Dib> dib = new ArrayList<>();
 }

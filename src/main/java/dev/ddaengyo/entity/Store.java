@@ -1,4 +1,4 @@
-package dev.jpa.entity;
+package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
