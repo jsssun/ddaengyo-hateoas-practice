@@ -15,18 +15,24 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long storeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
-    private Long userId;
-
-    @Column(nullable = false, length = 255)
     private String paymentMethod;
 
     @Column(nullable = false)
     private int totalPrice;
 
-    @Column(length = 255)
     private String requests;
+
+    @Column(nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private OrderStatus status = OrderStatus.PENDING;
 }

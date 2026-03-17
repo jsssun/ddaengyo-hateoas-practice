@@ -3,8 +3,6 @@ package dev.ddaengyo.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -16,8 +14,9 @@ public class Menu extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long menuId;
 
-    @Column(nullable = false)
-    private Long storeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
 
     @Column(nullable = false, length = 100)
     private String category;
