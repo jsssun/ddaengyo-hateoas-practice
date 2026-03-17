@@ -1,38 +1,59 @@
 package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    private Store store;
+    @Column(name = "store_id", nullable = false)
+    private Long storeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @Column(nullable = false)
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+
+    @Column(name = "payment_method", nullable = false, length = 255)
     private String paymentMethod;
 
-    @Column(nullable = false)
+    @Column(name = "total_price", nullable = false)
     private int totalPrice;
 
+    @Column(name = "requests", length = 255)
     private String requests;
 
-    @Column(nullable = false, length = 20)
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private OrderStatus status = OrderStatus.PENDING;
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
+
+    @Column(name = "quantity", nullable = false)
+    private int quantity;
+
+    protected Order() {}
+
+    public static Order create(Long userId, Long productId, Long storeId,
+                               int quantity, int totalPrice, String paymentMethod, String requests) {
+        Order order = new Order();
+        order.userId = userId;
+        order.productId = productId;
+        order.storeId = storeId;
+        order.quantity = quantity;
+        order.totalPrice = totalPrice;
+        order.paymentMethod = paymentMethod;
+        order.requests = requests;
+        order.status = "ORDERED";
+        return order;
+    }
+
+    public void updateTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 }
