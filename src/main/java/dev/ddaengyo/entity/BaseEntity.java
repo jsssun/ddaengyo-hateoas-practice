@@ -2,26 +2,20 @@ package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 
 @Getter
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
-    @Column(name = "created_date", nullable = false, updatable = false)
+    @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdDate;
 
-    @Column(name = "modified_date", nullable = false)
+    @LastModifiedDate
     private LocalDateTime modifiedDate;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdDate = LocalDateTime.now();
-        this.modifiedDate = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.modifiedDate = LocalDateTime.now();
-    }
 }

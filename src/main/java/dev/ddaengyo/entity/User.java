@@ -2,7 +2,6 @@ package dev.ddaengyo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.*;
 
 @Entity
 @Getter
@@ -29,8 +28,8 @@ public class User extends BaseEntity{
     private String email;
 
     @Column(name = "role", nullable = false, length = 100)
-    @Builder.Default
-    private String role = "회원";
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(name = "current_address")
     private String currentAddress;

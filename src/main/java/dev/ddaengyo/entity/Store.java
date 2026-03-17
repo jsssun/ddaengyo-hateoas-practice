@@ -10,12 +10,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class Store extends BaseEntity {
-
-    public enum StoreType {
-        DELIVERY,   // 배달
-        TAKEOUT     // 포장
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "store_id")
@@ -23,11 +17,6 @@ public class Store extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    @Builder.Default
-    private StoreType type = StoreType.DELIVERY;
 
     @Column(name = "category", nullable = false, length = 20)
     private String category;
