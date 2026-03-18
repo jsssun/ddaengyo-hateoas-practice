@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,16 +31,13 @@ public class MenuService {
                 .stream()
                 .map(menu -> {
                     MenuResponse response = MenuResponse.from(menu);
-                    return EntityModel.of(response,
-                            linkTo(methodOn(MenuController.class).getMenu(storeId, menu.getMenuId())).withSelfRel(),
-                            linkTo(methodOn(MenuController.class).getMenus(storeId)).withRel("menus")
-                    );
+                    return EntityModel.of(response);
                 })
                 .toList();
 
         return CollectionModel.of(menus,
-                linkTo(methodOn(MenuController.class).getMenus(storeId)).withSelfRel()
-        );
+                linkTo(methodOn(MenuController.class).getMenus(storeId)).withSelfRel(),
+                Link.of("/api/store/" + storeId + "/menu/{menuId}").withRel("menu"));
     }
 
     public EntityModel<MenuResponse> getMenu(Long storeId, Long menuId) {
