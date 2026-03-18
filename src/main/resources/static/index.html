@@ -161,17 +161,32 @@ function Header({setPage, user, setUser}) {
 function MainPage({setPage, setSelectedProduct, user}) {
   const [category, setCategory] = useState("전체");
   const [search, setSearch] = useState("");
-  const [products, setProducts] = useState(DUMMY_PRODUCTS);
+    const [products, setProducts] = useState([]);
 
-  // 백엔드 연결 후 아래 주석 해제 (storeId별로 조회해야 해서 전체 조회는 별도 API 필요)
-  // useEffect(() => {
-  //   api.getMenusByStore(1)
-  //     .then(data => {
-  //       const list = data._embedded?.menuResponseList || [];
-  //       setProducts(list.map(m => ({...m, id: m.menuId, storeId: m.storeId, img:"🍽️"})));
-  //     })
-  //     .catch(console.error);
-  // }, []);
+    useEffect(() => {
+        // 가게 1, 2, 3 메뉴 전부 불러오기
+        Promise.all([
+            api.getMenusByStore(1),
+            api.getMenusByStore(2),
+            api.getMenusByStore(3),
+        ]).then(([store1, store2, store3]) => {
+            const extract = (data) => {
+                const embedded = data._embedded;
+                if (!embedded) return [];
+                const key = Object.keys(embedded)[0];
+                return embedded[key] || [];
+            };
+            const all = [
+                ...extract(store1).map(m => ({...m, id: m.menuId, storeId: m.storeId, img:"🍗", storeName:"맛있는 치킨집"})),
+                ...extract(store2).map(m => ({...m, id: m.menuId, storeId: m.storeId, img:"🍣", storeName:"스시히로"})),
+                ...extract(store3).map(m => ({...m, id: m.menuId, storeId: m.storeId, img:"🍢", storeName:"엄마손 분식"})),
+            ];
+            setProducts(all);
+        }).catch(e => {
+            console.error("메뉴 조회 실패, 더미 데이터 사용", e);
+            setProducts(DUMMY_PRODUCTS);
+        });
+    }, []);
 
   const filtered = products.filter(p =>
     (category === "전체" || p.category === category) &&
