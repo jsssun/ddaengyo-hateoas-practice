@@ -5,6 +5,19 @@
 
 ---
 
+## 목차
+
+- [기술 스택](#기술-스택)
+- [프로젝트 구조](#프로젝트-구조)
+- [주요 기능](#주요-기능)
+- [주요 엔드포인트](#주요-엔드포인트)
+- [인증 방법](#인증-방법)
+- [실행 방법](#실행-방법)
+- [DB 설계](#db-설계)
+- [HATEOAS](#hateoas)
+
+---
+
 ## 기술 스택
 
 | 분류 | 기술 |
@@ -225,7 +238,8 @@ management.endpoint.health.show-details=always
 ---
 
 ## DB 설계
-![ddaengyo_erd](https://github.com/user-attachments/assets/1a53ec05-7279-414b-b43b-c335d509965f)
+![ddaengyo_erd (1)](https://github.com/user-attachments/assets/d37faeed-9e75-4205-a3bf-d9d103420792)
+
 원활한 실습 진행을 위해 찜, 장바구니, 리뷰 등은 생략함.
 
 
