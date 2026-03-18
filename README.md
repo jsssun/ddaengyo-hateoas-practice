@@ -72,14 +72,14 @@ src/main/resources/
 - 모든 쓰기 요청(등록/수정/삭제/주문)은 JWT Bearer 토큰 인증 필요
 - `CUSTOMER` / `OWNER` 역할 기반 권한 분리
 
-### 상품
-- 전체 상품 조회 (카테고리 필터링, 페이징 포함)
-- 상품 상세 조회
-- 상품 등록 / 수정 / 삭제 (OWNER 전용)
+### 메뉴
+- 전체 메뉴 조회 (인증 불필요)
+- 메뉴 단건 조회 (인증 불필요)
+- 메뉴 등록 / 수정 / 삭제 (OWNER 전용)
 - 모든 조회 응답에 HATEOAS `_links` 포함
 
 ### 주문
-- 인증된 사용자만 상품 주문 가능
+- 인증된 사용자만 주문 가능
 - 주문 단건 조회 (본인 주문만 접근 가능)
 - 내 주문 목록 조회
 - 모든 주문 응답에 HATEOAS `_links` 포함
@@ -87,7 +87,92 @@ src/main/resources/
   - `profile` : API 문서 링크 (Swagger UI)
   - `product` : 주문한 상품 상세 조회 링크
   - `list-products` : 전체 상품 목록 조회 링크
- 
+
+---
+
+## 주요 엔드포인트
+
+### 인증 (auth-controller)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| POST | `/api/auth/signup` | 회원가입 | 불필요 |
+| POST | `/api/auth/login` | 로그인 (JWT 발급) | 불필요 |
+
+### 메뉴 (menu-controller)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| GET | `/api/store/{storeId}/menu` | 메뉴 목록 조회 | 불필요 |
+| GET | `/api/store/{storeId}/menu/{menuId}` | 메뉴 단건 조회 | 불필요 |
+| POST | `/api/store/{storeId}/menu` | 메뉴 등록 | OWNER |
+| PUT | `/api/store/{storeId}/menu/{menuId}` | 메뉴 수정 | OWNER |
+| DELETE | `/api/store/{storeId}/menu/{menuId}` | 메뉴 삭제 | OWNER |
+
+### 주문 (order-controller)
+
+| Method | URL | 설명 | 인증 |
+|--------|-----|------|------|
+| GET | `/api/orders` | 내 주문 목록 조회 | CUSTOMER |
+| GET | `/api/orders/{orderId}` | 주문 단건 조회 | CUSTOMER |
+| POST | `/api/orders` | 주문 생성 | CUSTOMER |
+
+---
+
+## 인증 방법
+
+### 1. 회원가입
+
+```http
+POST /api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "user@test.com",
+  "password": "1234",
+  "name": "홍길동",
+  "phone": "01012345678",
+  "role": "CUSTOMER"
+}
+```
+
+### 2. 로그인 → 토큰 발급
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@test.com",
+  "password": "1234"
+}
+```
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+### 3. 인증이 필요한 API 호출
+
+발급받은 토큰을 `Authorization` 헤더에 포함해서 요청한다.
+
+```http
+POST /api/orders
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+### Swagger UI에서 인증하는 방법
+
+1. `http://localhost:8080/swagger-ui/index.html` 접속
+2. 우측 상단 **Authorize** 버튼 클릭
+3. 로그인 응답에서 받은 `accessToken` 값 입력
+4. 이후 모든 요청에 자동으로 Bearer 토큰이 포함됨
+
+> `Bearer ` 접두어 없이 토큰 값만 입력하면 된다.
+
 ---
 
 ## 실행 방법
@@ -140,36 +225,9 @@ management.endpoint.health.show-details=always
 ---
 
 ## DB 설계
+![ddaengyo_erd](https://github.com/user-attachments/assets/1a53ec05-7279-414b-b43b-c335d509965f)
+원활한 실습 진행을 위해 찜, 장바구니, 리뷰 등은 생략함.
 
-```
-user
-├── user_id (PK)
-├── email, password, name, phone
-├── role (CUSTOMER / OWNER)
-└── current_address
-
-store
-├── store_id (PK)
-├── name, category, address, phone, content
-├── min_delivery_price, delivery_tip
-├── min_delivery_time, max_delivery_time
-├── rating, dibs_count, review_count
-└── operation_hours, closed_days, delivery_address
-
-menu
-├── menu_id (PK)
-├── store_id (FK → store)
-├── category, name, price
-└── popularity
-
-orders
-├── id (PK)
-├── store_id (FK → store)
-├── user_id (FK → user)
-├── product_id, quantity
-├── payment_method, total_price, requests
-└── status (PENDING / DELIVERING / DELIVERED)
-```
 
 ---
 
@@ -181,19 +239,45 @@ HATEOAS(Hypermedia as the Engine of Application State)는 REST API 응답에 관
 
 ### 구현 방식
 
-`RepresentationModel`을 상속한 응답 클래스에 `.add()`로 링크를 추가하면 응답 JSON에 `_links` 블록이 자동으로 생성된다.
+`EntityModel` / `CollectionModel` 로 응답을 감싸고 Controller에서 링크를 추가한다.
 
 ```java
-// OrderResponse가 RepresentationModel을 상속
-public class OrderResponse extends RepresentationModel<OrderResponse> { ... }
-
-// Controller에서 링크 추가
-response.add(
-    linkTo(methodOn(OrderController.class).getOrder(email, orderId)).withSelfRel(),
-    Link.of("/swagger-ui/index.html").withRel("profile"),
-    Link.of("/api/products/" + productId).withRel("product"),
-    Link.of("/api/products").withRel("list-products")
+// Controller에서 링크 조립
+EntityModel<MenuResponse> model = EntityModel.of(response,
+    linkTo(methodOn(MenuController.class).getMenu(storeId, menuId)).withSelfRel(),
+    linkTo(methodOn(MenuController.class).getMenus(storeId)).withRel("menus")
 );
+```
+
+### 응답 예시
+
+```json
+{
+  "menuId": 1,
+  "name": "황금올리브 후라이드",
+  "price": 18000,
+  "_links": {
+    "self":  { "href": "http://localhost:8080/api/store/1/menu/1" },
+    "menus": { "href": "http://localhost:8080/api/store/1/menu" }
+  }
+}
+```
+
+### 목록 응답 예시 (URI Template)
+
+```json
+{
+  "_embedded": {
+    "menuResponseList": [
+      { "menuId": 1, "name": "황금올리브 후라이드" },
+      { "menuId": 2, "name": "매콤달콤 양념치킨" }
+    ]
+  },
+  "_links": {
+    "self": { "href": "http://localhost:8080/api/store/1/menu" },
+    "menu": { "href": "http://localhost:8080/api/store/1/menu/{menuId}", "templated": true }
+  }
+}
 ```
 
 ### 링크 종류
@@ -201,6 +285,6 @@ response.add(
 | rel | 설명 |
 |-----|------|
 | self | 현재 리소스 URI |
+| menus | 메뉴 목록 URI |
+| menu | 단건 조회용 URI Template (`{menuId}` 치환) |
 | profile | API 문서 링크 (Swagger UI) |
-| product | 주문한 상품 상세 조회 링크 |
-| list-products | 전체 상품 목록 조회 링크 |
