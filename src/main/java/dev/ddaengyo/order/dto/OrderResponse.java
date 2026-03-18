@@ -11,4 +11,5 @@ public class OrderResponse extends RepresentationModel<OrderResponse> {
     private Long productId;
     private Integer quantity;
     private String status;
+    private int totalPrice;
 }

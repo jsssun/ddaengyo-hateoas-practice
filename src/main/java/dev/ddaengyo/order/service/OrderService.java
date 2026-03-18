@@ -38,7 +38,7 @@ public class OrderService {
         Order order = Order.create(
                 user.getUserId(),
                 menu.getMenuId(),
-                menu.getStore().getStoreId(),  // getStoreId() → getStore().getStoreId()
+                menu.getStore().getStoreId(),
                 request.getQuantity(),
                 totalPrice,
                 "CARD",
@@ -51,7 +51,8 @@ public class OrderService {
                 saved.getId(),
                 saved.getProductId(),
                 saved.getQuantity(),
-                saved.getStatus()
+                saved.getStatus(),
+                order.getTotalPrice()
         );
     }
 
@@ -67,7 +68,8 @@ public class OrderService {
                 order.getId(),
                 order.getProductId(),
                 order.getQuantity(),
-                order.getStatus()
+                order.getStatus(),
+                order.getTotalPrice()
         );
     }
 
@@ -82,7 +84,8 @@ public class OrderService {
                         order.getId(),
                         order.getProductId(),
                         order.getQuantity(),
-                        order.getStatus()
+                        order.getStatus(),
+                        order.getTotalPrice()
                 ))
                 .toList();
     }

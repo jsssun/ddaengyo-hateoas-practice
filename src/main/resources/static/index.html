@@ -32,6 +32,7 @@ const api = {
     "Authorization": `Bearer ${sessionStorage.getItem("token")}`
   }),
 
+  // 인증
   signup: async (body) => {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
@@ -43,7 +44,6 @@ const api = {
       throw new Error(text || "회원가입에 실패했습니다.");
     }
   },
-
   login: async (body) => {
     const res = await fetch("/api/auth/login", {
       method: "POST",
@@ -54,37 +54,39 @@ const api = {
     return res.json();
   },
 
-  getProducts: async (params = {}) => {
-    const query = new URLSearchParams(params).toString();
-    const res = await fetch(`/api/products?${query}`, {headers: {"Content-Type": "application/json"}});
-    if (!res.ok) throw new Error("상품 조회 실패");
+  // 메뉴 (상품) - /api/store/{storeId}/menu
+  getMenusByStore: async (storeId) => {
+    const res = await fetch(`/api/store/${storeId}/menu`, {headers: {"Content-Type": "application/json"}});
+    if (!res.ok) throw new Error("메뉴 조회 실패");
     return res.json();
   },
-  getProduct: async (id) => {
-    const res = await fetch(`/api/products/${id}`, {headers: {"Content-Type": "application/json"}});
-    if (!res.ok) throw new Error("상품 상세 조회 실패");
+  getMenu: async (storeId, menuId) => {
+    const res = await fetch(`/api/store/${storeId}/menu/${menuId}`, {headers: {"Content-Type": "application/json"}});
+    if (!res.ok) throw new Error("메뉴 상세 조회 실패");
     return res.json();
   },
-  createProduct: async (body) => {
-    const res = await fetch("/api/products", {
+  createMenu: async (storeId, body) => {
+    const res = await fetch(`/api/store/${storeId}/menu`, {
       method: "POST", headers: api.authHeaders(), body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error("상품 등록 실패");
+    if (!res.ok) throw new Error("메뉴 등록 실패");
     return res.json();
   },
-  updateProduct: async (id, body) => {
-    const res = await fetch(`/api/products/${id}`, {
+  updateMenu: async (storeId, menuId, body) => {
+    const res = await fetch(`/api/store/${storeId}/menu/${menuId}`, {
       method: "PUT", headers: api.authHeaders(), body: JSON.stringify(body)
     });
-    if (!res.ok) throw new Error("상품 수정 실패");
+    if (!res.ok) throw new Error("메뉴 수정 실패");
     return res.json();
   },
-  deleteProduct: async (id) => {
-    const res = await fetch(`/api/products/${id}`, {
+  deleteMenu: async (storeId, menuId) => {
+    const res = await fetch(`/api/store/${storeId}/menu/${menuId}`, {
       method: "DELETE", headers: api.authHeaders()
     });
-    if (!res.ok) throw new Error("상품 삭제 실패");
+    if (!res.ok) throw new Error("메뉴 삭제 실패");
   },
+
+  // 주문
   createOrder: async (body) => {
     const res = await fetch("/api/orders", {
       method: "POST", headers: api.authHeaders(), body: JSON.stringify(body)
@@ -100,25 +102,21 @@ const api = {
 };
 
 /* ─────────────────────────────────────────
-   더미 데이터 (백엔드 API 완성 전까지 사용)
+   더미 데이터 (storeId 포함)
 ───────────────────────────────────────── */
 const DUMMY_PRODUCTS = [
-  {id:1,name:"황금올리브 후라이드",category:"치킨",price:18000,popularity:true,description:"바삭한 튀김옷의 정통 치킨",storeName:"맛있는 치킨집",img:"🍗"},
-  {id:2,name:"매콤달콤 양념치킨",category:"치킨",price:18000,popularity:true,description:"달콤매콤한 양념 치킨",storeName:"맛있는 치킨집",img:"🍗"},
-  {id:3,name:"반반치킨",category:"치킨",price:19000,popularity:false,description:"후라이드+양념 반반",storeName:"맛있는 치킨집",img:"🍗"},
-  {id:4,name:"연어 아보카도 롤",category:"일식",price:16000,popularity:true,description:"신선한 연어와 아보카도",storeName:"스시히로",img:"🍣"},
-  {id:5,name:"참치 사시미",category:"일식",price:22000,popularity:false,description:"신선한 참치 사시미",storeName:"스시히로",img:"🍣"},
-  {id:6,name:"떡볶이",category:"분식",price:7000,popularity:true,description:"매콤달콤한 떡볶이",storeName:"엄마손 분식",img:"🍢"},
-  {id:7,name:"순대국밥",category:"분식",price:9000,popularity:false,description:"든든한 순대국밥",storeName:"엄마손 분식",img:"🍲"},
+  {id:1,storeId:1,name:"황금올리브 후라이드",category:"치킨",price:18000,popularity:true,description:"바삭한 튀김옷의 정통 치킨",storeName:"맛있는 치킨집",img:"🍗"},
+  {id:2,storeId:1,name:"매콤달콤 양념치킨",category:"치킨",price:18000,popularity:true,description:"달콤매콤한 양념 치킨",storeName:"맛있는 치킨집",img:"🍗"},
+  {id:3,storeId:1,name:"반반치킨",category:"치킨",price:19000,popularity:false,description:"후라이드+양념 반반",storeName:"맛있는 치킨집",img:"🍗"},
+  {id:4,storeId:2,name:"연어 아보카도 롤",category:"일식",price:16000,popularity:true,description:"신선한 연어와 아보카도",storeName:"스시히로",img:"🍣"},
+  {id:5,storeId:2,name:"참치 사시미",category:"일식",price:22000,popularity:false,description:"신선한 참치 사시미",storeName:"스시히로",img:"🍣"},
+  {id:6,storeId:3,name:"떡볶이",category:"분식",price:7000,popularity:true,description:"매콤달콤한 떡볶이",storeName:"엄마손 분식",img:"🍢"},
+  {id:7,storeId:3,name:"순대국밥",category:"분식",price:9000,popularity:false,description:"든든한 순대국밥",storeName:"엄마손 분식",img:"🍲"},
 ];
-const DUMMY_ORDERS = [
-  {id:1001,productName:"황금올리브 후라이드",quantity:1,totalPrice:20000,status:"DELIVERED",createdDate:"2025-03-15",paymentMethod:"CARD"},
-  {id:1002,productName:"연어 아보카도 롤",quantity:2,totalPrice:35000,status:"DELIVERING",createdDate:"2025-03-17",paymentMethod:"KAKAO_PAY"},
-  {id:1003,productName:"떡볶이",quantity:1,totalPrice:7000,status:"PENDING",createdDate:"2025-03-17",paymentMethod:"NAVER_PAY"},
-];
-const STATUS_LABEL = {PENDING:"주문접수", DELIVERING:"배달중", DELIVERED:"배달완료"};
-const STATUS_COLOR = {PENDING:"#888", DELIVERING:"#ff6b00", DELIVERED:"#2d7a2d"};
-const STATUS_BG    = {PENDING:"#f5f5f5", DELIVERING:"#fff0e6", DELIVERED:"#f0fff4"};
+
+const STATUS_LABEL = {PENDING:"주문접수", ORDERED:"주문완료", DELIVERING:"배달중", DELIVERED:"배달완료"};
+const STATUS_COLOR = {PENDING:"#888", ORDERED:"#0066cc", DELIVERING:"#ff6b00", DELIVERED:"#2d7a2d"};
+const STATUS_BG    = {PENDING:"#f5f5f5", ORDERED:"#e6f7ff", DELIVERING:"#fff0e6", DELIVERED:"#f0fff4"};
 const CATEGORIES   = ["전체","치킨","일식","분식","중식","버거","피자"];
 
 /* ─────────────────────────────────────────
@@ -134,7 +132,7 @@ function Header({setPage, user, setUser}) {
             {user.role==="OWNER" && (
               <button onClick={()=>setPage("register")}
                 style={{color:"#fff",fontSize:13,padding:"6px 10px",borderRadius:16,background:"rgba(255,255,255,0.25)",fontWeight:600}}>
-                + 상품등록
+                + 메뉴등록
               </button>
             )}
             <button onClick={()=>setPage("orders")}
@@ -158,34 +156,34 @@ function Header({setPage, user, setUser}) {
 }
 
 /* ─────────────────────────────────────────
-   MainPage
+   MainPage - 더미 데이터 사용 (백엔드 메뉴 API 연결 시 주석 해제)
 ───────────────────────────────────────── */
 function MainPage({setPage, setSelectedProduct, user}) {
   const [category, setCategory] = useState("전체");
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState(DUMMY_PRODUCTS);
 
-  // 백엔드 연결 후 아래 주석 해제
+  // 백엔드 연결 후 아래 주석 해제 (storeId별로 조회해야 해서 전체 조회는 별도 API 필요)
   // useEffect(() => {
-  //   const params = {};
-  //   if (category !== "전체") params.category = category;
-  //   if (search) params.name = search;
-  //   api.getProducts(params)
-  //     .then(data => setProducts(data.content || data._embedded?.productList || []))
+  //   api.getMenusByStore(1)
+  //     .then(data => {
+  //       const list = data._embedded?.menuResponseList || [];
+  //       setProducts(list.map(m => ({...m, id: m.menuId, storeId: m.storeId, img:"🍽️"})));
+  //     })
   //     .catch(console.error);
-  // }, [category, search]);
+  // }, []);
 
   const filtered = products.filter(p =>
     (category === "전체" || p.category === category) &&
     (p.name.includes(search) || p.category.includes(search) || p.storeName?.includes(search))
   );
 
-  const handleDelete = async (e, id) => {
+  const handleDelete = async (e, product) => {
     e.stopPropagation();
-    if (!confirm("상품을 삭제하시겠습니까?")) return;
+    if (!confirm("메뉴를 삭제하시겠습니까?")) return;
     try {
-      await api.deleteProduct(id);
-      setProducts(prev => prev.filter(p => p.id !== id));
+      await api.deleteMenu(product.storeId, product.id);
+      setProducts(prev => prev.filter(p => p.id !== product.id));
     } catch(err) { alert(err.message); }
   };
 
@@ -195,7 +193,7 @@ function MainPage({setPage, setSelectedProduct, user}) {
         <div style={{background:"#fff",borderRadius:24,display:"flex",alignItems:"center",padding:"10px 16px",gap:8}}>
           <span style={{color:"#aaa"}}>🔍</span>
           <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="상품명, 가게명 검색"
+            placeholder="메뉴명, 가게명 검색"
             style={{border:"none",outline:"none",flex:1,fontSize:14}}/>
           {search && <button onClick={()=>setSearch("")} style={{color:"#aaa"}}>✕</button>}
         </div>
@@ -210,7 +208,7 @@ function MainPage({setPage, setSelectedProduct, user}) {
         ))}
       </div>
       <div style={{padding:"14px 16px"}}>
-        <p style={{fontSize:13,color:"#999",marginBottom:12}}>{filtered.length}개의 상품</p>
+        <p style={{fontSize:13,color:"#999",marginBottom:12}}>{filtered.length}개의 메뉴</p>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
           {filtered.map(product=>(
             <div key={product.id} onClick={()=>{setSelectedProduct(product);setPage("detail");}}
@@ -229,7 +227,7 @@ function MainPage({setPage, setSelectedProduct, user}) {
                   <div style={{display:"flex",gap:4,marginTop:8}} onClick={e=>e.stopPropagation()}>
                     <button onClick={e=>{e.stopPropagation();setSelectedProduct(product);setPage("edit");}}
                       style={{flex:1,padding:"5px",borderRadius:6,background:"#f5f5f5",fontSize:11,color:"#555",border:"none"}}>수정</button>
-                    <button onClick={e=>handleDelete(e,product.id)}
+                    <button onClick={e=>handleDelete(e, product)}
                       style={{flex:1,padding:"5px",borderRadius:6,background:"#fff0f0",fontSize:11,color:"#e44",border:"none"}}>삭제</button>
                   </div>
                 )}
@@ -298,14 +296,18 @@ function OrderPage({product, setPage, user}) {
     if (!user) { setPage("login"); return; }
     setLoading(true);
     try {
-      await api.createOrder({productId:product.id, quantity:qty, paymentMethod:payment, requests:requests||null});
+      await api.createOrder({
+        productId: product.id,  // menuId = productId
+        quantity: qty
+      });
+      setDone(true);
     } catch(e) {
-      // 백엔드 미완성 시 더미 처리
+      alert(e.message);
     } finally {
       setLoading(false);
-      setDone(true);
-      setTimeout(()=>setPage("orders"), 1500);
     }
+    if (!done) setDone(true);
+    setTimeout(()=>setPage("orders"), 1500);
   };
 
   if (done) return (
@@ -319,7 +321,7 @@ function OrderPage({product, setPage, user}) {
   return (
     <div style={{paddingBottom:120}}>
       <div style={{background:"#fff",padding:"16px",borderBottom:"1px solid #f0f0f0"}}>
-        <p style={{fontWeight:700,fontSize:16,marginBottom:12}}>주문 상품</p>
+        <p style={{fontWeight:700,fontSize:16,marginBottom:12}}>주문 메뉴</p>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0"}}>
           <div>
             <p style={{fontWeight:600,fontSize:15,marginBottom:2}}>{product.name}</p>
@@ -365,7 +367,7 @@ function OrderPage({product, setPage, user}) {
 }
 
 /* ─────────────────────────────────────────
-   OrdersPage
+   OrdersPage - 실제 API 연결
 ───────────────────────────────────────── */
 function OrdersPage({setPage, user}) {
   const [orders, setOrders] = useState([]);
@@ -374,8 +376,14 @@ function OrdersPage({setPage, user}) {
   useEffect(() => {
     if (!user) { setPage("login"); return; }
     api.getMyOrders()
-      .then(data => setOrders(data.content || data))
-      .catch(() => setOrders(DUMMY_ORDERS))
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data.content || []);
+        setOrders(list);
+      })
+      .catch(e => {
+        console.error(e);
+        setOrders([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -390,18 +398,18 @@ function OrdersPage({setPage, user}) {
         </div>
       )}
       {orders.map(order=>(
-        <div key={order.id} style={{background:"#fff",borderRadius:12,padding:"14px",marginBottom:10,border:"1px solid #f0f0f0"}}>
+        <div key={order.orderId} style={{background:"#fff",borderRadius:12,padding:"14px",marginBottom:10,border:"1px solid #f0f0f0"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-            <p style={{fontWeight:700,fontSize:15}}>{order.productName}</p>
+            <p style={{fontWeight:700,fontSize:15}}>메뉴 #{order.productId}</p>
             <span style={{fontSize:12,padding:"2px 8px",borderRadius:10,fontWeight:600,
               background:STATUS_BG[order.status]||"#f5f5f5",
               color:STATUS_COLOR[order.status]||"#888"}}>
               {STATUS_LABEL[order.status]||order.status}
             </span>
           </div>
-          <p style={{fontSize:13,color:"#aaa",marginBottom:6}}>수량: {order.quantity}개 · {order.paymentMethod}</p>
+          <p style={{fontSize:13,color:"#aaa",marginBottom:6}}>수량: {order.quantity}개</p>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <p style={{fontSize:12,color:"#ccc"}}>{order.createdDate}</p>
+            <p style={{fontSize:12,color:"#ccc"}}></p>
             <p style={{fontSize:15,fontWeight:700}}>{order.totalPrice?.toLocaleString()}원</p>
           </div>
         </div>
@@ -417,14 +425,14 @@ function OrdersPage({setPage, user}) {
 }
 
 /* ─────────────────────────────────────────
-   RegisterPage (OWNER 전용)
+   ProductForm - 공통 폼 (등록/수정)
 ───────────────────────────────────────── */
-function ProductForm({title, initial, onSubmit, onCancel, loading}) {
+function ProductForm({title, initial, onSubmit, onCancel, loading, showStoreId}) {
   const [form, setForm] = useState(initial);
   const field = (key, label, type="text", placeholder="") => (
     <div style={{marginBottom:14}}>
       <p style={{fontSize:13,color:"#777",marginBottom:4}}>{label}</p>
-      <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}
+      <input type={type} value={form[key]||""} onChange={e=>setForm({...form,[key]:e.target.value})}
         placeholder={placeholder}
         style={{width:"100%",padding:"10px 12px",border:"1px solid #eee",borderRadius:8,fontSize:14,outline:"none"}}/>
     </div>
@@ -433,19 +441,19 @@ function ProductForm({title, initial, onSubmit, onCancel, loading}) {
     <div style={{padding:"20px 16px",paddingBottom:100}}>
       <p style={{fontWeight:700,fontSize:17,marginBottom:20}}>{title}</p>
       <div style={{background:"#fff",borderRadius:12,padding:"16px",border:"1px solid #f0f0f0"}}>
-        {field("name","상품명 *","text","상품명을 입력하세요")}
+        {showStoreId && field("storeId","가게 ID *","number","가게 ID를 입력하세요 (1, 2, 3...)")}
+        {field("name","메뉴명 *","text","메뉴명을 입력하세요")}
         {field("price","가격 (원) *","number","숫자만 입력")}
-        {field("description","설명","text","상품 설명을 입력하세요")}
         <div style={{marginBottom:14}}>
           <p style={{fontSize:13,color:"#777",marginBottom:4}}>카테고리</p>
-          <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}
+          <select value={form.category||"치킨"} onChange={e=>setForm({...form,category:e.target.value})}
             style={{width:"100%",padding:"10px 12px",border:"1px solid #eee",borderRadius:8,fontSize:14,outline:"none",background:"#fff"}}>
-            {["치킨","일식","분식","중식","버거","피자","기타"].map(c=><option key={c} value={c}>{c}</option>)}
+            {["후라이드","양념","반반","롤","사시미","분식","기타"].map(c=><option key={c} value={c}>{c}</option>)}
           </select>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <input type="checkbox" id="pop" checked={form.popularity} onChange={e=>setForm({...form,popularity:e.target.checked})}/>
-          <label htmlFor="pop" style={{fontSize:14,color:"#555"}}>인기 상품으로 표시</label>
+          <input type="checkbox" id="pop" checked={form.popularity||false} onChange={e=>setForm({...form,popularity:e.target.checked})}/>
+          <label htmlFor="pop" style={{fontSize:14,color:"#555"}}>인기 메뉴로 표시</label>
         </div>
       </div>
       <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",padding:"12px 16px",borderTop:"1px solid #f0f0f0",display:"flex",gap:10}}>
@@ -459,36 +467,77 @@ function ProductForm({title, initial, onSubmit, onCancel, loading}) {
   );
 }
 
+/* ─────────────────────────────────────────
+   RegisterPage (OWNER 전용)
+───────────────────────────────────────── */
 function RegisterPage({setPage, user}) {
   const [loading, setLoading] = useState(false);
   if (!user || user.role!=="OWNER") { setPage("main"); return null; }
+
   const handleSubmit = async (form) => {
-    if (!form.name||!form.price) { alert("상품명과 가격을 입력하세요"); return; }
+    if (!form.storeId) { alert("가게 ID를 입력하세요"); return; }
+    if (!form.name) { alert("메뉴명을 입력하세요"); return; }
+    if (!form.price) { alert("가격을 입력하세요"); return; }
     setLoading(true);
     try {
-      await api.createProduct({...form, price: parseInt(form.price)});
-      alert("상품이 등록되었습니다!"); setPage("main");
+      await api.createMenu(form.storeId, {
+        name: form.name,
+        category: form.category || "기타",
+        price: parseInt(form.price),
+        popularity: form.popularity || false
+      });
+      alert("메뉴가 등록되었습니다!");
+      setPage("main");
     } catch(e) { alert(e.message); }
     finally { setLoading(false); }
   };
-  return <ProductForm title="상품 등록" initial={{name:"",category:"치킨",price:"",description:"",popularity:false}}
-    onSubmit={handleSubmit} onCancel={()=>setPage("main")} loading={loading}/>;
+
+  return (
+    <ProductForm
+      title="메뉴 등록"
+      initial={{storeId:"", name:"", category:"후라이드", price:"", popularity:false}}
+      onSubmit={handleSubmit}
+      onCancel={()=>setPage("main")}
+      loading={loading}
+      showStoreId={true}
+    />
+  );
 }
 
+/* ─────────────────────────────────────────
+   EditPage (OWNER 전용)
+───────────────────────────────────────── */
 function EditPage({product, setPage, user}) {
   const [loading, setLoading] = useState(false);
-  if (!user||user.role!=="OWNER"||!product) { setPage("main"); return null; }
+  if (!user || user.role!=="OWNER" || !product) { setPage("main"); return null; }
+
   const handleSubmit = async (form) => {
-    if (!form.name||!form.price) { alert("상품명과 가격을 입력하세요"); return; }
+    if (!form.name) { alert("메뉴명을 입력하세요"); return; }
+    if (!form.price) { alert("가격을 입력하세요"); return; }
     setLoading(true);
     try {
-      await api.updateProduct(product.id, {...form, price: parseInt(form.price)});
-      alert("상품이 수정되었습니다!"); setPage("main");
+      await api.updateMenu(product.storeId, product.id, {
+        name: form.name,
+        category: form.category,
+        price: parseInt(form.price),
+        popularity: form.popularity || false
+      });
+      alert("메뉴가 수정되었습니다!");
+      setPage("main");
     } catch(e) { alert(e.message); }
     finally { setLoading(false); }
   };
-  return <ProductForm title="상품 수정" initial={{name:product.name,category:product.category,price:product.price,description:product.description||"",popularity:product.popularity||false}}
-    onSubmit={handleSubmit} onCancel={()=>setPage("main")} loading={loading}/>;
+
+  return (
+    <ProductForm
+      title="메뉴 수정"
+      initial={{name:product.name, category:product.category, price:product.price, popularity:product.popularity||false}}
+      onSubmit={handleSubmit}
+      onCancel={()=>setPage("main")}
+      loading={loading}
+      showStoreId={false}
+    />
+  );
 }
 
 /* ─────────────────────────────────────────
@@ -505,14 +554,14 @@ function LoginPage({setPage, setUser}) {
     if (!form.email||!form.password) { setError("이메일과 비밀번호를 입력하세요"); return; }
     if (isSignup&&!form.name) { setError("이름을 입력하세요"); return; }
     if (isSignup&&form.password.length<8) { setError("비밀번호는 8자 이상이어야 합니다"); return; }
+    if (isSignup&&!/^\d{10,11}$/.test(form.phone)) { setError("전화번호는 숫자만 10~11자리로 입력하세요"); return; }
     setLoading(true);
     try {
       if (isSignup) {
-        await api.signup({email:form.email,password:form.password,name:form.name,phone:form.phone,role:form.role});
+        await api.signup({email:form.email, password:form.password, name:form.name, phone:form.phone, role:form.role});
       }
-      const data = await api.login({email:form.email,password:form.password});
+      const data = await api.login({email:form.email, password:form.password});
       api.setToken(data.accessToken);
-      // JWT payload에서 role 파싱
       const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
       const role = payload.role || form.role || "CUSTOMER";
       setUser({email:form.email, name:form.name||form.email.split("@")[0], role});
@@ -524,7 +573,7 @@ function LoginPage({setPage, setUser}) {
     }
   };
 
-  const field = (key,label,type="text",placeholder="") => (
+  const field = (key, label, type="text", placeholder="") => (
     <div style={{marginBottom:10}}>
       <p style={{fontSize:12,color:"#aaa",marginBottom:4}}>{label}</p>
       <input type={type} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})} placeholder={placeholder}
@@ -554,7 +603,7 @@ function LoginPage({setPage, setUser}) {
         {isSignup && (
           <>
             {field("name","이름 *","text","홍길동")}
-            {field("phone","전화번호","text","01012345678")}
+            {field("phone","전화번호 * (숫자만 10~11자리)","text","01012345678")}
             <div style={{marginBottom:10}}>
               <p style={{fontSize:12,color:"#aaa",marginBottom:4}}>역할 *</p>
               <div style={{display:"flex",gap:8}}>
