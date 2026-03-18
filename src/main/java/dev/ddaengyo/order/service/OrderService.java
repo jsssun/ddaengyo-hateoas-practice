@@ -3,9 +3,9 @@ package dev.ddaengyo.order.service;
 import dev.ddaengyo.entity.Menu;
 import dev.ddaengyo.entity.Order;
 import dev.ddaengyo.entity.User;
+import dev.ddaengyo.menu.respository.MenuRepository;
 import dev.ddaengyo.order.dto.OrderRequest;
 import dev.ddaengyo.order.dto.OrderResponse;
-import dev.ddaengyo.repository.MenuRepository;
 import dev.ddaengyo.repository.OrderRepository;
 import dev.ddaengyo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,8 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final MenuRepository menuRepository;
     private final UserRepository userRepository;
+    private final MenuRepository menuRepository;
 
     @Transactional
     public OrderResponse createOrder(String email, OrderRequest request) {
