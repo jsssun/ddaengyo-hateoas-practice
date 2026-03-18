@@ -653,30 +653,37 @@ function LoginPage({setPage, setUser}) {
    App
 ───────────────────────────────────────── */
 function App() {
-  const [page, setPage] = useState("main");
-  const [user, setUser] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [orderProduct, setOrderProduct] = useState(null);
+    const [page, setPage] = useState("main");
+    const [user, setUser] = useState(null);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [orderProduct, setOrderProduct] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);  // 추가
 
-  const renderPage = () => {
-    switch(page) {
-      case "main":     return <MainPage setPage={setPage} setSelectedProduct={setSelectedProduct} user={user}/>;
-      case "detail":   return <DetailPage product={selectedProduct} setPage={setPage} user={user} setOrderProduct={setOrderProduct}/>;
-      case "order":    return <OrderPage product={orderProduct} setPage={setPage} user={user}/>;
-      case "orders":   return <OrdersPage setPage={setPage} user={user}/>;
-      case "register": return <RegisterPage setPage={setPage} user={user}/>;
-      case "edit":     return <EditPage product={selectedProduct} setPage={setPage} user={user}/>;
-      case "login":    return <LoginPage setPage={setPage} setUser={setUser}/>;
-      default:         return null;
-    }
-  };
+    // 메인으로 이동 시 메뉴 목록 새로고침
+    const goMain = () => {
+        setRefreshKey(k => k + 1);
+        setPage("main");
+    };
 
-  return (
-    <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",background:"#f5f5f5"}}>
-      <Header setPage={setPage} user={user} setUser={setUser}/>
-      {renderPage()}
-    </div>
-  );
+    const renderPage = () => {
+        switch(page) {
+            case "main":     return <MainPage key={refreshKey} setPage={setPage} setSelectedProduct={setSelectedProduct} user={user}/>;
+            case "detail":   return <DetailPage product={selectedProduct} setPage={setPage} user={user} setOrderProduct={setOrderProduct}/>;
+            case "order":    return <OrderPage product={orderProduct} setPage={setPage} user={user}/>;
+            case "orders":   return <OrdersPage setPage={setPage} user={user}/>;
+            case "register": return <RegisterPage setPage={goMain} user={user}/>;
+            case "edit":     return <EditPage product={selectedProduct} setPage={goMain} user={user}/>;
+            case "login":    return <LoginPage setPage={setPage} setUser={setUser}/>;
+            default:         return null;
+        }
+    };
+
+    return (
+        <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",background:"#f5f5f5"}}>
+            <Header setPage={setPage} user={user} setUser={setUser}/>
+            {renderPage()}
+        </div>
+    );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);

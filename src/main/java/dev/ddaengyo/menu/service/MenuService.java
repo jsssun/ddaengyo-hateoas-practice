@@ -50,6 +50,7 @@ public class MenuService {
         return MenuResponse.from(saved);
     }
 
+    @Transactional
     public MenuResponse updateMenu(Long storeId, Long menuId, @Valid MenuRequest request) {
         Menu menu = menuRepository.findByMenuIdAndStore_StoreId(menuId, storeId)
                 .orElseThrow(() -> new IllegalArgumentException("메뉴를 찾을 수 없습니다."));
@@ -59,6 +60,7 @@ public class MenuService {
         return MenuResponse.from(updated);
     }
 
+    @Transactional
     public void deleteMenu(Long storeId, Long menuId) {
         menuRepository.findByMenuIdAndStore_StoreId(menuId, storeId)
                 .orElseThrow(() -> new IllegalArgumentException("메뉴를 찾을 수 없습니다."));
