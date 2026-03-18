@@ -11,9 +11,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 @RequestMapping("/api/store/{storeId}/menu")
@@ -38,10 +44,20 @@ public class MenuController {
             @ApiResponse(responseCode = "404", description = "가게를 찾을 수 없음")
     })
     @GetMapping
-    public ResponseEntity<?> getMenus(
+    public ResponseEntity<CollectionModel<EntityModel<MenuResponse>>> getMenus(
             @Parameter(description = "가게 ID") @PathVariable Long storeId) {
-        var menus = menuService.getMenus(storeId);
-        return ResponseEntity.ok(menus);
+
+        List<EntityModel<MenuResponse>> menus = menuService.getMenus(storeId)
+                .stream()
+                .map(EntityModel::of)
+                .toList();
+
+        CollectionModel<EntityModel<MenuResponse>> model = CollectionModel.of(menus,
+                linkTo(methodOn(MenuController.class).getMenus(storeId)).withSelfRel(),
+                Link.of("/api/store/" + storeId + "/menu/{menuId}").withRel("menu")
+        );
+
+        return ResponseEntity.ok(model);
     }
 
     /// ### 메뉴 단건 조회
@@ -60,11 +76,18 @@ public class MenuController {
             @ApiResponse(responseCode = "404", description = "메뉴를 찾을 수 없음")
     })
     @GetMapping("/{menuId}")
-    public ResponseEntity<?> getMenu(
+    public ResponseEntity<EntityModel<MenuResponse>> getMenu(
             @Parameter(description = "가게 ID") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID") @PathVariable Long menuId) {
-        var menu = menuService.getMenu(storeId, menuId);
-        return ResponseEntity.ok(menu);
+
+        MenuResponse response = menuService.getMenu(storeId, menuId);
+
+        EntityModel<MenuResponse> model = EntityModel.of(response,
+                linkTo(methodOn(MenuController.class).getMenu(storeId, menuId)).withSelfRel(),
+                linkTo(methodOn(MenuController.class).getMenus(storeId)).withRel("menus")
+        );
+
+        return ResponseEntity.ok(model);
     }
 
     /// ### 메뉴 등록
@@ -84,11 +107,20 @@ public class MenuController {
     })
     @PreAuthorize("hasRole('OWNER')")
     @PostMapping
-    public ResponseEntity<?> createMenu(
+    public ResponseEntity<EntityModel<MenuResponse>> createMenu(
             @Parameter(description = "가게 ID") @PathVariable Long storeId,
             @RequestBody @Valid MenuRequest request) {
-        var menu = menuService.createMenu(storeId, request);
-        return ResponseEntity.ok(menu);
+
+        MenuResponse response = menuService.createMenu(storeId, request);
+
+        EntityModel<MenuResponse> model = EntityModel.of(response,
+                linkTo(methodOn(MenuController.class).getMenu(storeId, response.getMenuId())).withSelfRel(),
+                linkTo(methodOn(MenuController.class).getMenus(storeId)).withRel("menus")
+        );
+
+        return ResponseEntity
+                .created(URI.create("/api/store/" + storeId + "/menu/" + response.getMenuId()))
+                .body(model);
     }
 
     /// ### 메뉴 수정
@@ -115,8 +147,15 @@ public class MenuController {
             @Parameter(description = "가게 ID") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
             @RequestBody @Valid MenuRequest request) {
-        var menu = menuService.updateMenu(storeId, menuId, request);
-        return ResponseEntity.ok(menu);
+
+        MenuResponse response = menuService.updateMenu(storeId, menuId, request);
+
+        EntityModel<MenuResponse> model = EntityModel.of(response,
+                linkTo(methodOn(MenuController.class).getMenu(storeId, menuId)).withSelfRel(),
+                linkTo(methodOn(MenuController.class).getMenus(storeId)).withRel("menus")
+        );
+
+        return ResponseEntity.ok(model);
     }
 
     /// ### 메뉴 삭제
